@@ -1,0 +1,20 @@
+name: Test
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: tag
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone latest repository
+        uses: actions/checkout@v2
+      - id: tag-check
+        uses: hathitrust/github_actions/validate_tag@main
+        with:
+          tag: ${{ github.event.inputs.tag }}
+      - id: tag-report
+        run: echo "Tag expands to ${{ steps.tag-check.outputs.tag }}"
