@@ -1,0 +1,52 @@
+---
+name: "Docker Tag Release"
+description: "Given an existing image, applies the given tag and updates latest."
+
+inputs:
+  registry_username:
+    description: >-
+      Username for logging in to registry. Normally, set to github.actor.
+    default: ${{ github.actor }}
+  registry_token:
+    description: >-
+      Token for logging in to registry. Normally, use secrets.GITHUB_TOKEN.
+    required: true
+  registry:
+    description: >-
+      Registry that hosts these images; by default, ghcr.io.
+    default: ghcr.io
+  existing_tag:
+    description: ->
+      Existing image and tag to use.
+    default: ${{ github.sha }}
+  image:
+    description: >-
+      Image to tag, e.g. ghcr.io/organization/image.
+    required: true
+  new_tag:
+    description: ->
+      Tag to apply to image
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Log into container registry
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.registry_username }}
+        password: ${{ inputs.registry_token }}
+
+    - name: Tag image release in GHCR
+      env:
+        EXISTING_TAG: ${{ inputs.existing_tag }}
+        IMAGE: ${{ inputs.image }}
+        NEW_TAG: ${{ inputs.new_tag }}
+      shell: bash
+      run: |
+        docker pull "$EXISTING_TAG"
+        docker tag "$EXISTING_TAG" "$IMAGE":"$NEW_TAG"
+        docker tag "$EXISTING_TAG" "$IMAGE":latest
+        docker push "$IMAGE":"$NEW_TAG"
+        docker push "$IMAGE":latest

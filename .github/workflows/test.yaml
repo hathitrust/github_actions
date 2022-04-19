@@ -1,20 +1,50 @@
+---
 name: Test
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: tag
-        required: true
+        description: repository branch/commit/etc to check/expand to commit
+      image_to_build: 
+        description: Docker image to build
+      existing_tag: 
+        description: Existing Docker image and tag 
+      image_to_tag:
+        description: Docker image to tag
+      new_tag:
+        description: New tag to apply to Docker image
 
 jobs:
-  build:
+  validate-tag:
     runs-on: ubuntu-latest
     steps:
       - name: Clone latest repository
         uses: actions/checkout@v2
       - id: tag-check
-        uses: hathitrust/github_actions/validate_tag@main
+        uses: ./validate-tag
         with:
           tag: ${{ github.event.inputs.tag }}
       - id: tag-report
         run: echo "Tag expands to ${{ steps.tag-check.outputs.tag }}"
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone latest repository
+        uses: actions/checkout@v2
+      - uses: ./build
+        with:
+          tag: ${{ github.event.inputs.tag }}
+          image: ${{ github.event.inputs.image_to_build }}
+          registry_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: ./test/Dockerfile
+  tag-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone latest repository
+        uses: actions/checkout@v2
+      - uses: ./tag-release
+        with:
+          registry_token: ${{ secrets.GITHUB_TOKEN }}
+          existing_tag: ${{ github.event.inputs.existing_tag }}
+          image: ${{ github.event.inputs.image_to_tag }}
+          new_tag: ${{ github.event.inputs.tag }}
