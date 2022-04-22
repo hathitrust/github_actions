@@ -9,7 +9,7 @@ See individual actions for documentation on their parameters.
 See [test/README.md](test/README.md) for examples of how to test and run
 actions locally with [act](https://github.com/nektos/act).
 
-## [`validate_tag`](validate_tag/action.yml)
+## [`validate-tag`](validate-tag/action.yml)
 
 Uses `git rev-parse` to verify and expand a potentially ambiguous Git tag into
 something usable by other actions. Used by the `build` action.
@@ -17,7 +17,7 @@ something usable by other actions. Used by the `build` action.
 ## [`build`](build/action.yml)
 
 Builds a Docker image for an arbitrary revision, branch, or GitHub repository
-tag and pushes it to a repository. Uses the `validate_tag` action above to
+tag and pushes it to a repository. Uses the `validate-tag` action above to
 resolve the tag to a particular commit to check out and build.
 
 For example, an action that allows building an image for an arbitrary tag,
