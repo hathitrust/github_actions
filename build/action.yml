@@ -30,6 +30,10 @@ inputs:
     description: >-
       Which file to use to build the image; by default, Dockerfile
     default: Dockerfile
+  push_latest:
+    description: >-
+      Update 'latest' tag when pushing
+    default: false
 
 runs:
   using: composite
@@ -67,6 +71,17 @@ runs:
         IMAGE: ${{ inputs.image }}
         TAG: ${{ steps.tag_check.outputs.tag }}
 
+    - name: Check whether to push latest tag
+      id: latest_push
+      uses: actions/github-script@v6
+      with:
+        script: |
+          if ( core.getInput('update-latest') ) {
+            core.setOutput('latest_tag',core.getInput('image') + ':latest')
+          } else {
+            core.setOutput('latest_tag','')
+          }
+
     - name: Check out at given revision
       if: ${{ steps.image_check.outputs.image_exists != 'true' }}
       uses: actions/checkout@v3
@@ -82,5 +97,6 @@ runs:
         tags: |
           ${{ inputs.image }}:${{ inputs.tag }}
           ${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}
+          ${{ steps.latest_push.outputs.latest_tag }}
         file: ${{ inputs.dockerfile }}
         build-args: ${{ inputs.build-args }}
