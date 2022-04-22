@@ -40,8 +40,6 @@ runs:
   steps:
     - name: Clone latest repository
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
 
     - name: Find commit for tag
       id: tag_check
