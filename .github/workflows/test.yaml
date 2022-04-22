@@ -37,6 +37,7 @@ jobs:
           image: ${{ github.event.inputs.image_to_build }}
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: ./test/Dockerfile
+          push_latest: true
   tag-release:
     runs-on: ubuntu-latest
     steps:
