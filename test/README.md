@@ -23,6 +23,11 @@ where `JOB` is `tag-release`, `validate-tag`, or `build`.
 A sample `Dockerfile` is provided for the purposes of testing building and
 pushing a small / trivial image.
 
+Note that `act` has special handling for `actions/checkout` and ignores it by
+default. For the `build` action. if you are trying to build something other
+than the currently checked-out version, you may need to use the
+`--no-skip-checkout` flag.
+
 Testing actions that push to the GitHub Container Registry (`build` and
 `tag-release`) as well as actions that deploy to Kubernetes (none in this
 repository yet) requires additional configuration:
