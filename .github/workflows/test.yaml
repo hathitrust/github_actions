@@ -5,10 +5,10 @@ on:
     inputs:
       tag:
         description: repository branch/commit/etc to check/expand to commit
-      image_to_build: 
+      image_to_build:
         description: Docker image to build
-      existing_tag: 
-        description: Existing Docker image and tag 
+      existing_tag:
+        description: Existing Docker image and tag
       image_to_tag:
         description: Docker image to tag
       new_tag:
@@ -37,6 +37,7 @@ jobs:
           image: ${{ github.event.inputs.image_to_build }}
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: ./test/Dockerfile
+          push_latest: true
   tag-release:
     runs-on: ubuntu-latest
     steps:
