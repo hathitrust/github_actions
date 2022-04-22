@@ -16,12 +16,14 @@ inputs:
     default: ghcr.io
   registry_username:
     description: >-
-      Username for logging in to registry. For GHCR (and by default), set to github.actor.
+      Username for logging in to registry. For GHCR (and by default),
+      set to github.actor.
     default: ${{ github.actor }}
   registry_token:
     description: >-
-      Token for logging in to registry. For GHCR, use secrets.GITHUB_TOKEN.
-    required: true
+      Token for logging in to registry.  For GHCR (and by default),
+      set to github.token.
+    default: ${{ github.token }}
   build-args:
     description: >-
       Arguments to pass to docker build
@@ -40,6 +42,8 @@ runs:
   steps:
     - name: Clone latest repository
       uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.tag }}
 
     - name: Find commit for tag
       id: tag_check
@@ -83,12 +87,6 @@ runs:
           } else {
             core.setOutput('latest_tag','')
           }
-
-    - name: Check out at given revision
-      if: ${{ steps.image_check.outputs.image_exists != 'true' }}
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ inputs.tag }}
 
     - name: Build image and push to GHCR
       if: ${{ steps.image_check.outputs.image_exists != 'true' }}
