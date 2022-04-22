@@ -1,0 +1,9 @@
+{
+  "inputs": {
+    "tag": "main",
+    "image_to_build": "ghcr.io/hathitrust/github_actions_test",
+    "existing_tag": "ghcr.io/hathitrust/github_actions_test:latest",
+    "image_to_tag": "ghcr.io/hathitrust/github_actions_test_out",
+    "new_tag": "tag_to_apply"
+  }
+}
