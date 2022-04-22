@@ -76,7 +76,7 @@ runs:
       uses: actions/github-script@v6
       with:
         script: |
-          if ( core.getInput('update-latest') ) {
+          if ( core.getInput('push_latest') ) {
             core.setOutput('latest_tag',core.getInput('image') + ':latest')
           } else {
             core.setOutput('latest_tag','')
@@ -97,6 +97,7 @@ runs:
         tags: |
           ${{ inputs.image }}:${{ inputs.tag }}
           ${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}
+          ${{ inputs.image }}:${{ github.sha }}
           ${{ steps.latest_push.outputs.latest_tag }}
         file: ${{ inputs.dockerfile }}
         build-args: ${{ inputs.build-args }}
