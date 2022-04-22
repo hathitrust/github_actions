@@ -81,7 +81,6 @@ runs:
         push: true
         tags: |
           ${{ inputs.image }}:${{ inputs.tag }}
-          ${{ inputs.image }}:${{ github.sha }}
           ${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}
         file: ${{ inputs.dockerfile }}
         build-args: ${{ inputs.build-args }}
