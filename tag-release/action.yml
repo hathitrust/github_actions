@@ -27,6 +27,14 @@ inputs:
     description: ->
       Tag to apply to image
     required: true
+  wait_time:
+    description: ->
+      Time to wait between checking whether the image exists
+    default: 60
+  max_tries:
+    description: ->
+      Maximum number of times to check whether the image exists before giving up
+    default: 10
 
 runs:
   using: composite
@@ -37,6 +45,30 @@ runs:
         registry: ${{ inputs.registry }}
         username: ${{ inputs.registry_username }}
         password: ${{ inputs.registry_token }}
+
+    - name: Wait for revision to exist in container registry
+      env:
+        EXISTING_TAG: ${{ inputs.existing_tag }}
+        MAX_TRIES: ${{ inputs.max_tries }}
+        WAIT_TIME: ${{ inputs.wait_time }}
+      id: image_wait
+      shell: bash
+      run: |
+        i=1
+        while [ true ]; do
+          echo "Checking if $EXISTING_TAG exists; try $i"
+          if docker manifest inspect $EXISTING_TAG > /dev/null; then
+            echo $EXISTING_TAG exists
+            exit 0
+          elif [ $i -lt $MAX_TRIES ]; then
+            echo "Waiting $WAIT_TIME seconds"
+            sleep $WAIT_TIME 
+            i=$((i+1))
+          else
+            echo "Image not found; giving up"
+            exit 1
+          fi
+        done
 
     - name: Tag image release in GHCR
       env:
