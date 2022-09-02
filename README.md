@@ -70,3 +70,6 @@ jobs:
           image: ghcr.io/organization/package
           new_tag: ${{ github.event.release.tag_name }}
 ```
+
+This workflow will wait for `existing_tag` to exist in the registry; by default
+it checks once per minute and waits up to 10 minutes total.
