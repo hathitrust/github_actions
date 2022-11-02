@@ -17,10 +17,10 @@ runs:
       run: |
         if git rev-parse 'refs/tags/${{ inputs.tag }}' &> /dev/null
         then
-          echo '::set-output name=tag::${{ inputs.tag }}'
+          echo 'tag=${{ inputs.tag }}' >> $GITHUB_OUTPUT
         elif git rev-parse '${{ inputs.tag }}' &> /dev/null
         then
-          echo "::set-output name=tag::`git rev-parse '${{ inputs.tag }}'`"
+          echo "tag=`git rev-parse '${{ inputs.tag }}'`" >> $GITHUB_OUTPUT
         else
           echo "Couldn't figure out tag from input: ${{ inputs.tag }}"
           exit 1

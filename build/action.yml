@@ -52,7 +52,7 @@ runs:
         tag: ${{ inputs.tag }}
 
     - name: Log into container registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         registry: ${{ inputs.registry }}
         username: ${{ inputs.registry_username }}
@@ -64,7 +64,7 @@ runs:
       run: |
         echo Checking whether Docker image "$IMAGE":"$TAG" exists
         if docker manifest inspect "$IMAGE":"$TAG" > /dev/null; then
-          echo '::set-output name=image_exists::true'
+          echo 'image_exists=true' >> $GITHUB_OUTPUT
           echo "image exists!"
         else
           echo "image doesn't exist; Starting to Build and push image"
