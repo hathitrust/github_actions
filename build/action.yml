@@ -47,7 +47,7 @@ runs:
 
     - name: Find commit for tag
       id: tag_check
-      uses: hathitrust/github_actions/validate-tag@address-deprecations
+      uses: hathitrust/github_actions/validate-tag@v1
       with:
         tag: ${{ inputs.tag }}
 
