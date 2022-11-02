@@ -47,7 +47,7 @@ runs:
 
     - name: Find commit for tag
       id: tag_check
-      uses: hathitrust/github_actions/validate-tag@v1
+      uses: hathitrust/github_actions/validate-tag@address-deprecations
       with:
         tag: ${{ inputs.tag }}
 
@@ -90,7 +90,7 @@ runs:
 
     - name: Build image and push to GHCR
       if: ${{ steps.image_check.outputs.image_exists != 'true' }}
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v3
       with:
         context: .
         push: true
