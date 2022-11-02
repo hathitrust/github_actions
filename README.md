@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone latest repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: ./build
         with:
           tag: ${{ github.event.inputs.tag }}
