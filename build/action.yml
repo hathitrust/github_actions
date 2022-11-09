@@ -36,6 +36,12 @@ inputs:
     description: >-
       Update 'latest' tag when pushing
     default: false
+  submodules:
+    description: >-
+      Whether to checkout submodules (as for actions@v3) and thence build them
+      into the image. Set to false by default as for checkout. If you use submodules,
+      you probably want to set this.
+    default: false
 
 runs:
   using: composite
@@ -44,6 +50,7 @@ runs:
       uses: actions/checkout@v3
       with:
         ref: ${{ inputs.tag }}
+        submodules: ${{ inputs.submodules }}
 
     - name: Find commit for tag
       id: tag_check
