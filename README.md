@@ -34,13 +34,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone latest repository
-        uses: actions/checkout@v3
-      - uses: ./build
+      - uses: hathitrust/github_actions/build@v1
         with:
-          tag: ${{ github.event.inputs.tag }}
-          image: ghcr.io/organization/package-unstable
-          registry_token: ${{ secrets.GITHUB_TOKEN }}
+          image: ghcr.io/${{ github.repository }}
+          dockerfile: Dockerfile.prod
+          tag: ${{ github.sha }}
+          registry_token: ${{ github.token }}
 ```
 
 Given an input tag `some-branch` which resolves is currently at revision
