@@ -1,4 +1,3 @@
----
 name: "Docker Tag Release"
 description: "Given an existing image, applies the given tag and updates latest."
 
@@ -16,7 +15,7 @@ inputs:
       Registry that hosts these images; by default, ghcr.io.
     default: ghcr.io
   existing_tag:
-    description: ->
+    description: >-
       Existing image and tag to use.
     default: ${{ github.sha }}
   image:
@@ -24,61 +23,63 @@ inputs:
       Image to tag, e.g. ghcr.io/organization/image.
     required: true
   new_tag:
-    description: ->
-      Tag to apply to image
+    description: -> Tag to apply to image
     required: true
   wait_time:
-    description: ->
-      Time to wait between checking whether the image exists
+    description: -> Time to wait between checking whether the image exists
     default: 60
   max_tries:
-    description: ->
-      Maximum number of times to check whether the image exists before giving up
+    description: -> Maximum number of times to check whether the image exists before giving up
     default: 10
 
 runs:
   using: composite
   steps:
-    - name: Log into container registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ inputs.registry }}
-        username: ${{ inputs.registry_username }}
-        password: ${{ inputs.registry_token }}
+  - name: Log into container registry
+    uses: docker/login-action@v2
+    with:
+      registry: ${{ inputs.registry }}
+      username: ${{ inputs.registry_username }}
+      password: ${{ inputs.registry_token }}
 
-    - name: Wait for revision to exist in container registry
-      env:
-        EXISTING_TAG: ${{ inputs.existing_tag }}
-        MAX_TRIES: ${{ inputs.max_tries }}
-        WAIT_TIME: ${{ inputs.wait_time }}
-      id: image_wait
-      shell: bash
-      run: |
-        i=1
-        while [ true ]; do
-          echo "Checking if $EXISTING_TAG exists; try $i"
-          if docker manifest inspect $EXISTING_TAG > /dev/null; then
-            echo $EXISTING_TAG exists
-            exit 0
-          elif [ $i -lt $MAX_TRIES ]; then
-            echo "Waiting $WAIT_TIME seconds"
-            sleep $WAIT_TIME 
-            i=$((i+1))
-          else
-            echo "Image not found; giving up"
-            exit 1
-          fi
-        done
+  - name: Wait for revision to exist in container registry
+    env:
+      EXISTING_TAG: ${{ inputs.existing_tag }}
+      MAX_TRIES: ${{ inputs.max_tries }}
+      WAIT_TIME: ${{ inputs.wait_time }}
+    id: image_wait
+    shell: bash
+    run: |
+      i=1
+      while [ true ]; do
+        echo "Checking if $EXISTING_TAG exists; try $i"
+        if docker manifest inspect $EXISTING_TAG > /dev/null; then
+          echo $EXISTING_TAG exists
+          exit 0
+        elif [ $i -lt $MAX_TRIES ]; then
+          echo "Waiting $WAIT_TIME seconds"
+          sleep $WAIT_TIME
+          i=$((i+1))
+        else
+          echo "Image not found; giving up"
+          exit 1
+        fi
+      done
 
-    - name: Tag image release in GHCR
-      env:
-        EXISTING_TAG: ${{ inputs.existing_tag }}
-        IMAGE: ${{ inputs.image }}
-        NEW_TAG: ${{ inputs.new_tag }}
-      shell: bash
-      run: |
-        docker pull "$EXISTING_TAG"
-        docker tag "$EXISTING_TAG" "$IMAGE":"$NEW_TAG"
-        docker tag "$EXISTING_TAG" "$IMAGE":latest
-        docker push "$IMAGE":"$NEW_TAG"
-        docker push "$IMAGE":latest
+  - name: Tag image release in GHCR
+    env:
+      EXISTING_TAG: ${{ inputs.existing_tag }}
+      IMAGE: ${{ inputs.image }}
+      NEW_TAG: ${{ inputs.new_tag }}
+    shell: bash
+    run: |
+      # docker pull "$EXISTING_TAG"
+      # docker tag "$EXISTING_TAG" "$IMAGE":"$NEW_TAG"
+      # docker tag "$EXISTING_TAG" "$IMAGE":latest
+      # docker push "$IMAGE":"$NEW_TAG"
+      # docker push "$IMAGE":latest
+
+      docker buildx imagetools create \
+            --tag  "$IMAGE":"$NEW_TAG" \
+            --tag "$IMAGE":latest \
+            "$EXISTING_TAG"
