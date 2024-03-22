@@ -73,12 +73,6 @@ runs:
       NEW_TAG: ${{ inputs.new_tag }}
     shell: bash
     run: |
-      # docker pull "$EXISTING_TAG"
-      # docker tag "$EXISTING_TAG" "$IMAGE":"$NEW_TAG"
-      # docker tag "$EXISTING_TAG" "$IMAGE":latest
-      # docker push "$IMAGE":"$NEW_TAG"
-      # docker push "$IMAGE":latest
-
       docker buildx imagetools create \
             --tag  "$IMAGE":"$NEW_TAG" \
             --tag "$IMAGE":latest \
