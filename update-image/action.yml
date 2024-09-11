@@ -1,0 +1,48 @@
+name: Update Image File
+description: Updates the image file in the ht_tanka repository
+
+inputs:
+  subject:
+    required: true
+    description: ''
+  body:
+    required: true
+    description: ''
+  image:
+    required: true
+    description: ''
+  file:
+    required: true
+    description: ''
+
+runs:
+  using: composite
+  steps:
+  - name: Clone latest repository
+    uses: actions/checkout@v4
+  - name: dump github event
+    shell: bash
+    env:
+      EVENT: ${{ toJson(github.event) }}
+    run: echo "$EVENT"
+  - name: update the config
+    shell: bash
+    env:
+      FILE: ${{ inputs.file }}
+      IMAGE: ${{ inputs.image }}
+    run: echo -n $IMAGE > $FILE
+  - name: cat the files
+    shell: bash
+    run: cat ${{ inputs.file }}
+  - name: Commit and push files new file
+    shell: bash
+    env:
+      SUBJECT: ${{ inputs.subject }}
+      BODY: ${{ inputs.body }}
+    run: |
+      git config --local user.email "action@github.com"
+      git config --local user.name "GitHub Actions Bot"
+      git pull
+      git add -A
+      git commit -m "$SUBJECT" -m "$BODY"
+      git push

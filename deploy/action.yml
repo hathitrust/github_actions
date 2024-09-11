@@ -1,0 +1,66 @@
+name: Deploy
+description: "This action is used to deploy"
+
+inputs:
+  environment:
+    required: false
+    description: the github actions environment context
+  image:
+    required: true
+    description: The full gchr image
+  file:
+    required: true
+    description: path to file in repository to update with the image
+  CONFIG_REPO_RW_APP_ID:
+    description: The ID of the GithubApp that is used to generate keys that enable one repository to send repository dispatch messages to another.
+    required: false
+  CONFIG_REPO_RW_INSTALL_ID:
+    description: ""
+    required: false
+  CONFIG_REPO_FULL_NAME:
+    description: The github repo of the tanka control repository
+    required: false
+  # secrets:
+  CONFIG_REPO_RW_KEY:
+    description: The private key used to talk to the GithubAPP with the App ID
+    required: true
+
+runs:
+  using: composite
+  steps:
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+  - name: Set environment variables
+    shell: bash
+    run: |
+      if [ -z "${{ inputs.CONFIG_REPO_RW_APP_ID }}" ]
+      then
+        echo "CONFIG_REPO_RW_APP_ID=${{ vars.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
+        echo "setting CONFIG_REPO_RW_APP_ID to ${{ vars.CONFIG_REPO_RW_APP_ID }} from vars"
+      else
+        echo "CONFIG_REPO_RW_APP_ID=${{ inputs.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
+        echo "setting CONFIG_REPO_RW_APP_ID to ${{ inputs.CONFIG_REPO_RW_APP_ID }} from inputs"
+      fi
+      if [ -z "${{ inputs.CONFIG_REPO_FULL_NAME }}" ]
+      then
+        echo "CONFIG_REPO_FULL_NAME=${{ vars.CONFIG_REPO_FULL_NAME }}" >> $GITHUB_ENV
+        echo "setting CONFIG_REPO_FULL_NAME to ${{ vars.CONFIG_REPO_FULL_NAME }} from vars"
+      else
+        echo "CONFIG_REPO_FULL_NAME=${{ inputs.CONFIG_REPO_FULL_NAME }}" >> $GITHUB_ENV
+        echo "setting CONFIG_REPO_FULL_NAME to ${{ inputs.CONFIG_REPO_FULL_NAME }} from inputs"
+      fi
+  - name: Generate app token
+    id: generate_token
+    uses: actions/create-github-app-token@v1
+    with:
+      app-id: ${{ env.CONFIG_REPO_RW_APP_ID }}
+      private-key: ${{ secrets.CONFIG_REPO_RW_KEY }}
+      owner: ${{ github.repository_owner }}
+  - name: Send the message
+    uses: peter-evans/repository-dispatch@v3
+    with:
+      event-type: update-image
+      token: ${{ steps.generate_token.outputs.token }}
+      repository: ${{ env.CONFIG_REPO_FULL_NAME }}
+      client-payload: '{ "subject": "Update ${{ inputs.file }}", "body": "Originating repository is ${{ github.repository }}\nRun ID is ${{ github.run_id }}\nUser is ${{ github.actor }}", "image": "${{ inputs.image }}", "file": "${{ inputs.file }}" }'
