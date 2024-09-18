@@ -23,7 +23,7 @@ inputs:
   # secrets:
   CONFIG_REPO_RW_KEY:
     description: The private key used to talk to the GithubAPP with the App ID
-    required: true
+    required: false
 
 runs:
   using: composite
@@ -36,16 +36,16 @@ runs:
     run: |
       if [ -z "${{ inputs.CONFIG_REPO_RW_APP_ID }}" ]
       then
-        echo "CONFIG_REPO_RW_APP_ID=${{ vars.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
-        echo "setting CONFIG_REPO_RW_APP_ID to ${{ vars.CONFIG_REPO_RW_APP_ID }} from vars"
+        echo "CONFIG_REPO_RW_APP_ID=${{ env.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
+        echo "setting CONFIG_REPO_RW_APP_ID to ${{ env.CONFIG_REPO_RW_APP_ID }} from env"
       else
         echo "CONFIG_REPO_RW_APP_ID=${{ inputs.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
         echo "setting CONFIG_REPO_RW_APP_ID to ${{ inputs.CONFIG_REPO_RW_APP_ID }} from inputs"
       fi
       if [ -z "${{ inputs.CONFIG_REPO_FULL_NAME }}" ]
       then
-        echo "CONFIG_REPO_FULL_NAME=${{ vars.CONFIG_REPO_FULL_NAME }}" >> $GITHUB_ENV
-        echo "setting CONFIG_REPO_FULL_NAME to ${{ vars.CONFIG_REPO_FULL_NAME }} from vars"
+        echo "CONFIG_REPO_FULL_NAME=${{ env.CONFIG_REPO_FULL_NAME }}" >> $GITHUB_ENV
+        echo "setting CONFIG_REPO_FULL_NAME to ${{ env.CONFIG_REPO_FULL_NAME }} from env"
       else
         echo "CONFIG_REPO_FULL_NAME=${{ inputs.CONFIG_REPO_FULL_NAME }}" >> $GITHUB_ENV
         echo "setting CONFIG_REPO_FULL_NAME to ${{ inputs.CONFIG_REPO_FULL_NAME }} from inputs"
@@ -55,7 +55,7 @@ runs:
     uses: actions/create-github-app-token@v1
     with:
       app-id: ${{ env.CONFIG_REPO_RW_APP_ID }}
-      private-key: ${{ secrets.CONFIG_REPO_RW_KEY }}
+      private-key: ${{ inputs.CONFIG_REPO_RW_KEY }}
       owner: ${{ github.repository_owner }}
   - name: Send the message
     uses: peter-evans/repository-dispatch@v3
