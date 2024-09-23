@@ -13,17 +13,17 @@ inputs:
     description: path to file in repository to update with the image
   CONFIG_REPO_RW_APP_ID:
     description: The ID of the GithubApp that is used to generate keys that enable one repository to send repository dispatch messages to another.
-    required: false
+    required: true
   CONFIG_REPO_RW_INSTALL_ID:
     description: ""
     required: false
   CONFIG_REPO_FULL_NAME:
     description: The github repo of the tanka control repository
-    required: false
+    required: true
   # secrets:
   CONFIG_REPO_RW_KEY:
     description: The private key used to talk to the GithubAPP with the App ID
-    required: false
+    required: true
 
 runs:
   using: composite
