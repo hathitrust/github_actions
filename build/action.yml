@@ -49,6 +49,10 @@ inputs:
     default: false
   gh_event:
     description: The name of the event that triggered the parent workflow.
+outputs:
+  ghc_img:
+    description: "Export GHCR.io package resource URL"
+    value: ${{ steps.ghc_img_id.outputs.ghc_img }}
 
 runs:
   using: composite
@@ -142,3 +146,8 @@ runs:
       cache-from: type=gha
       cache-to: type=gha,mode=max
       provenance: false
+
+  - name: Export GHCR.io resource
+    id: ghc_img_id
+    shell: bash
+    run: echo "ghc_img=${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}" >> $GITHUB_OUTPUT
