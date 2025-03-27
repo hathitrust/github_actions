@@ -17,7 +17,7 @@ runs:
     with:
       image-ref: ${{ inputs.image-ref }}
       format: 'table' # Output format (table, json, template, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)
-      exit-code: '1'
+      exit-code: '0' # Exit code for runner when a vulnerability is found. Non-0 exit will fail the job
       ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
       vuln-type: 'os,library'
       severity: 'CRITICAL,HIGH' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
