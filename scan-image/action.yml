@@ -5,7 +5,7 @@ inputs:
   image-ref:
     description: Image reference
     required: true
-  skip-setup-trivy:
+  latest:
     description: Skip calling the setup-trivy action to install trivy
     default: "false"
 
@@ -21,4 +21,4 @@ runs:
       ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
       vuln-type: 'os,library'
       severity: 'CRITICAL,HIGH' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-      skip-setup-trivy: ${{ input.skip-setup-trivy }}
+      skip-setup-trivy: ${{ inputs.skip-setup-trivy }}
