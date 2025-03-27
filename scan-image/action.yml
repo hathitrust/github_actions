@@ -21,4 +21,3 @@ runs:
       ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
       vuln-type: 'os,library'
       severity: 'CRITICAL,HIGH' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-      skip-setup-trivy: ${{ inputs.skip-setup-trivy }}
