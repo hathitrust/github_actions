@@ -20,9 +20,23 @@ runs:
       exit-code: '0' # Exit code for runner when a vulnerability is found. Non-0 exit will fail the job
       ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
       vuln-type: 'os,library'
-      severity: 'CRITICAL,HIGH' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      severity: 'CRITICAL,HIGH,MEDIUM' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
       cache: 'true' # By default, cache is only accessed within the current branch.
       output: trivy-report.txt
+  - name: Publish Trivy Output to Summary
+    shell: bash
+    run: |
+      if [[ -s trivy-report.txt ]]; then
+        {
+          echo "### Security Output"
+          echo "<details><summary>Click to expand</summary>"
+          echo ""
+          echo '```Trivy'
+          cat trivy-report.txt
+          echo '```'
+          echo "</details>"
+        } >> $GITHUB_STEP_SUMMARY
+      fi
 
   - name: Upload trivy report as a Github artifact
     uses: actions/upload-artifact@v4
