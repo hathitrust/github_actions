@@ -21,3 +21,12 @@ runs:
       ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
       vuln-type: 'os,library'
       severity: 'CRITICAL,HIGH' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      cache: 'true' # By default, cache is only accessed within the current branch.
+      output: trivy-report.txt
+
+  - name: Upload trivy report as a Github artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: trivy-table-report
+      path: '${{ github.workspace }}/trivy-report.txt'
+      retention-days: 30 # 90 is the default
