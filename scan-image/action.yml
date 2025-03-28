@@ -50,12 +50,18 @@ runs:
 
         try{
         const content = fs.readFileSync(path, 'utf8');
-        } catch(error){
-        const content = error
-        }
         github.rest.issues.createComment({
           issue_number: context.issue.number,
           owner: context.repo.owner,
           repo: context.repo.repo,
           body: content
         })
+        } catch(error){
+        const content = error
+        github.rest.issues.createComment({
+          issue_number: context.issue.number,
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          body: content
+        })
+        }
