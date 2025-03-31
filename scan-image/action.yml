@@ -16,7 +16,7 @@ runs:
     uses: aquasecurity/trivy-action@0.28.0
     with:
       image-ref: ${{ inputs.image-ref }}
-      format: 'template' # Output format (table, json, template, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)
+      format: 'json' # Output format (table, json, template, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)
       exit-code: '0' # Exit code for runner when a vulnerability is found. Non-0 exit will fail the job
       ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
       vuln-type: 'os,library'
