@@ -33,7 +33,7 @@ runs:
           echo "### Security Output"
           echo "<details><summary>Click to expand</summary>"
           echo ""
-          echo '```Trivy'
+          echo '```'
           cat trivy-report.txt
           echo '```'
           echo "</details>"
@@ -54,7 +54,7 @@ runs:
           issue_number: context.issue.number,
           owner: context.repo.owner,
           repo: context.repo.repo,
-          body: content
+          body: '```'+content+'```'
         })
         } catch(error){
         const content = error
@@ -62,6 +62,6 @@ runs:
           issue_number: context.issue.number,
           owner: context.repo.owner,
           repo: context.repo.repo,
-          body: content
+          body: '```'+content+'```'
         })
         }
