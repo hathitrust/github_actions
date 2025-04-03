@@ -14,6 +14,8 @@ runs:
   steps:
   - name: Run Trivy vulnerability scanner
     uses: aquasecurity/trivy-action@0.28.0
+    env:
+      TRIVY_DISABLE_VEX_NOTICE: true
     with:
       image-ref: ${{ inputs.image-ref }}
       format: 'table' # Output format (table, json, template, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)
@@ -45,23 +47,18 @@ runs:
     uses: actions/github-script@v7
     with:
       script: |
-        const fs = require('fs')
-        const path = 'trivy-report.txt'
+        const createPRComment = (content) => {
+        github.rest.issues.createComment({
+          issue_number: context.issue.number,
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          body: '```'+content+'```'
+          })
+        }
 
-        try{
-        const content = fs.readFileSync(path, 'utf8');
-        github.rest.issues.createComment({
-          issue_number: context.issue.number,
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          body: '```'+content+'```'
-        })
-        } catch(error){
-        const content = error
-        github.rest.issues.createComment({
-          issue_number: context.issue.number,
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          body: '```'+content+'```'
-        })
+        try {
+          const content = fs.readFileSync(path, 'utf8')
+          createPRComment(content);
+        } catch (error) {
+          createPRComment(error)
         }
