@@ -47,6 +47,8 @@ runs:
     uses: actions/github-script@v7
     with:
       script: |
+        const fs = require('fs')
+        const path = 'trivy-report.txt'
         const issueComment = (content) => {
         github.rest.issues.createComment({
           issue_number: context.issue.number,
