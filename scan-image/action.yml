@@ -1,0 +1,66 @@
+name: "Vulnerability Scan on Docker Image"
+description: "This uses Trivy to run a security scan on a docker image"
+
+inputs:
+  image-ref:
+    description: Image reference
+    required: true
+  latest:
+    description: Skip calling the setup-trivy action to install trivy
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+  - name: Run Trivy vulnerability scanner
+    uses: aquasecurity/trivy-action@0.28.0
+    env:
+      TRIVY_DISABLE_VEX_NOTICE: true
+    with:
+      image-ref: ${{ inputs.image-ref }}
+      format: 'table' # Output format (table, json, template, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)
+      exit-code: '0' # Exit code for runner when a vulnerability is found. Non-0 exit will fail the job
+      ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
+      vuln-type: 'os,library'
+      severity: 'CRITICAL,HIGH,MEDIUM' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      cache: 'true' # By default, cache is only accessed within the current branch.
+      output: trivy-report.txt
+
+  - name: Publish Trivy Output to Summary
+    id: trivy-summary
+    shell: bash
+    run: |
+      if [[ -s trivy-report.txt ]]; then
+        {
+          echo "### Security Output"
+          echo "<details><summary>Click to expand</summary>"
+          echo ""
+          echo '```'
+          cat trivy-report.txt
+          echo '```'
+          echo "</details>"
+        } >> $GITHUB_STEP_SUMMARY
+      fi
+
+  - name: Comment on PR
+    if: github.event_name == 'pull_request'
+    uses: actions/github-script@v7
+    with:
+      script: |
+        const fs = require('fs')
+        const path = 'trivy-report.txt'
+        const issueComment = (content) => {
+        github.rest.issues.createComment({
+          issue_number: context.issue.number,
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          body: '```'+content+'```'
+          })
+        }
+
+        try {
+          const content = fs.readFileSync(path, 'utf8')
+          issueComment(content);
+        } catch (error) {
+          issueComment(error)
+        }
