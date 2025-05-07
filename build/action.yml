@@ -146,6 +146,7 @@ runs:
       cache-from: type=gha
       cache-to: type=gha,mode=max
       provenance: false
+      pull: true
 
   - name: Export GHCR.io resource
     id: ghc_img_id
