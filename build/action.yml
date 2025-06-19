@@ -26,7 +26,7 @@ inputs:
     default: ${{ github.token }}
   build-args:
     description: >-
-      Arguments to pass to docker build
+      Set build time variables for the ARG instruction
     required: false
   dockerfile:
     description: >-
@@ -49,6 +49,9 @@ inputs:
     default: false
   gh_event:
     description: The name of the event that triggered the parent workflow.
+  target:
+    description: Sets the target stage to build
+
 outputs:
   ghc_img:
     description: "Export GHCR.io package resource URL"
@@ -147,6 +150,7 @@ runs:
       cache-to: type=gha,mode=max
       provenance: false
       pull: true
+      target: ${{inputs.target}}
 
   - name: Export GHCR.io resource
     id: ghc_img_id
