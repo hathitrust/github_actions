@@ -10,7 +10,7 @@ This GitHub Action updates a file in a repository (typically a configuration or 
 | `subject` | string | The subject line of the Git commit message       | Yes      | –       |
 | `body`    | string | The body (description) of the Git commit message | Yes      | –       |
 | `image`   | string | The new Docker image reference to write to file  | Yes      | –       |
-| `file`    | string | Path to the file to be updated with the image    | Yes      | –       |
+| `file`    | string | Path to the file to be created/updated with the image    | Yes      | –       |
 
 ---
 #### Steps and Logic
