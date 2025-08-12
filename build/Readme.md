@@ -6,8 +6,8 @@ This composite GitHub Action builds a Docker image from a specified revision, ta
 #### Parameters
 | Name                | Type    | Description                                                     | Required | Default                                         |
 | ------------------- | ------- | --------------------------------------------------------------- | -------- | ----------------------------------------------- |
-| `tag`               | string  | Git revision, tag, or branch to build                           | Yes      | `${{ github.event.repository.default_branch }}` |
-| `img_tag`           | string  | Custom tag to apply to the built image                          | No       | –                                               |
+| `tag`               | string  | Git revision (commit hash), tag, or branch to build                           | Yes      | `${{ github.event.repository.default_branch }}` |
+| `img_tag`           | string  | Custom tag to apply to the built image. I.e `unstable`, `latest`.                          | No       | –                                               |
 | `image`             | string  | Full name of the image to build (e.g. `ghcr.io/org/image`)      | Yes      | –                                               |
 | `registry`          | string  | Container registry hostname                                     | No       | `ghcr.io`                                       |
 | `registry_username` | string  | Username for registry authentication (typically `github.actor`) | No       | `${{ github.actor }}`                           |

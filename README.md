@@ -72,3 +72,69 @@ jobs:
 
 This workflow will wait for `existing_tag` to exist in the registry; by default
 it checks once per minute and waits up to 10 minutes total.
+
+---
+## [`deploy`](deploy/action.yml)
+
+This GitHub Action is designed to trigger deployments by updating a target file in the `ht_tanka` configuration repository. It uses a GitHub App to securely authenticate and dispatch an event with the relevant deployment data.
+
+```yaml
+on:
+    workflow_dispatch:
+        inputs:
+            branch_hash:
+                description: Branch sha or revision to deploy (Defaults to branch sha)
+            environments:
+                description: The environment to deploy to
+                type: choice
+                default: testing
+                options:
+                - testing
+                - staging
+                - production
+jobs:
+    deploy:
+            runs-on: ubuntu-latest
+            permissions:
+                contents: read
+                packages: write
+            steps:
+                - name: Deploy to ${{inputs.environments}}
+                  uses: hathitrust/github_actions/deploy@v1
+                  with:
+                    image: ghcr.io/${{ github.repository }}:${{ inputs.branch_hash || github.sha}}
+                    file: environments/${{ github.event.repository.name }}/${{inputs.environments}}/web-image.txt
+                    CONFIG_REPO_RW_APP_ID: ${{ vars.CONFIG_REPO_RW_APP_ID }}
+                    CONFIG_REPO_FULL_NAME: ${{ vars.CONFIG_REPO_FULL_NAME }}
+                    CONFIG_REPO_RW_KEY: ${{secrets.CONFIG_REPO_RW_KEY}}
+```
+---
+## [`scan-image`](scan-image/action.yml)
+This GitHub Action performs a security scan on a Docker image using Trivy. It checks for OS and library vulnerabilities, outputs a readable report, publishes a summary to the GitHub Actions UI, and optionally comments the results on a pull request.
+
+```yaml
+on:
+    workflow_dispatch:
+        inputs:
+            image-ref:
+                description: "The name of the image (Default will get this repositories latest image)"
+            branch_hash:
+                description: Branch sha or revision to deploy (Defaults to branch sha)
+
+jobs:
+    image-scan:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            pull-requests: write
+
+        steps:
+            - name: Scanning Image ${{ github.repository }}:${{ inputs.branch_hash || github.sha}}
+              uses: hathitrust/github_actions/scan-image@v1.7.0 # Will update to v1 after demo and appoval
+              with:
+                image-ref: ghcr.io/${{ github.repository || inputs.image-ref }}:${{ inputs.branch_hash || github.sha}}
+```
+---
+## [`update-image`](update-image/action.yml)
+This GitHub Action updates a file in a repository (typically a configuration or deployment file in the ht_tanka repo) by replacing its contents with a new Docker image reference. It then commits and pushes the change back to the repository, automating the update process for image deployment configurations.

@@ -1,7 +1,7 @@
 # Docker Tag and Release
 ---
 #### Purpose
-This GitHub Action applies a new tag (such as a release version) to an existing Docker image and also updates the latest tag. It is useful in release workflows where you want to reference a specific image by a version tag or latest after confirming the image exists in the registry.
+This GitHub Action applies a new tag (such as a release version) to an existing Docker image and also updates the latest tag.
 
 ---
 #### Parameters
