@@ -25,21 +25,49 @@ branch, or revision and pushing that image might be:
 
 ```yaml
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        required: true
+    workflow_dispatch:
+        inputs:
+            img_tag:
+                description: Docker Image Tag
+            ref:
+                description: Revision or Branch to build
+                default: main
+            push_latest:
+                description: Set True if the build is for the latest version
+                type: boolean
+                required: false
+                default: false
+            platforms:
+                description: Platforms to build for
+                type: choice
+                default: linux/amd64,linux/arm64
+                options:
+                - linux/amd64,linux/arm64
+                - linux/amd64
+                - linux/arm64
+            rebuild:
+                description: Rebuild this image?
+                type: boolean
+                default: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: hathitrust/github_actions/build@v1
-        with:
-          image: ghcr.io/${{ github.repository }}
-          dockerfile: Dockerfile.prod
-          tag: ${{ github.sha }}
-          registry_token: ${{ github.token }}
+    build-image:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Build Image
+              uses: hathitrust/github_actions/build@v1
+              with:
+                image: ghcr.io/${{ github.repository }}
+                dockerfile: Dockerfile
+                img_tag: ${{ inputs.img_tag }}
+                tag: ${{ inputs.ref }}
+                push_latest: ${{ inputs.push_latest}}
+                registry_token: ${{ github.token }}
+                rebuild: ${{ inputs.rebuild }}
 ```
 
 Given an input tag `some-branch` which resolves is currently at revision
@@ -48,6 +76,11 @@ then push that image to GHCR with tags for
 `ghcr.io/organization/package-unstable:some-branch` as well as
 `ghcr.io/organization/package-unstable:451ba479cce63ab5c0e87a5c723e373d920d3406`.
 
+---
+## [`update-image`](update-image/action.yml)
+This GitHub Action updates a file in a repository (typically a configuration or deployment file in the ht_tanka repo) by replacing its contents with a new Docker image reference. It then commits and pushes the change back to the repository, automating the update process for image deployment configurations. This is an action that is used by the `deploy` workflow.
+
+---
 ## [`tag-release`](tag-release/action.yml)
 
 Typically used in release workflows for applying that version tag to a
@@ -59,14 +92,14 @@ on:
     types: [ released ]
 
 jobs:
-  tag_release:
+  tag-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: hathitrust/github-actions/tag-release@v1
+      - uses: hathitrust/github_actions/tag-release@v1
         with:
-          registry_token: ${{ secrets.GITHUB_TOKEN }}
-          existing_tag: ghcr.io/organization/package-unstable:${{ github.sha }}
-          image: ghcr.io/organization/package
+          registry_token: ${{ github.token }}
+          existing_tag: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          image: ghcr.io/${{ github.repository }}
           new_tag: ${{ github.event.release.tag_name }}
 ```
 
@@ -135,6 +168,3 @@ jobs:
               with:
                 image-ref: ghcr.io/${{ github.repository || inputs.image-ref }}:${{ inputs.branch_hash || github.sha}}
 ```
----
-## [`update-image`](update-image/action.yml)
-This GitHub Action updates a file in a repository (typically a configuration or deployment file in the ht_tanka repo) by replacing its contents with a new Docker image reference. It then commits and pushes the change back to the repository, automating the update process for image deployment configurations.
