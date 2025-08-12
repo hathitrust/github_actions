@@ -9,11 +9,6 @@ See individual actions for documentation on their parameters.
 See [test/README.md](test/README.md) for examples of how to test and run
 actions locally with [act](https://github.com/nektos/act).
 
-## [`validate-tag`](validate-tag/action.yml)
-
-Uses `git rev-parse` to verify and expand a potentially ambiguous Git tag into
-something usable by other actions. Used by the `build` action.
-
 ## [`build`](build/action.yml)
 
 Builds a Docker image for an arbitrary revision, branch, or GitHub repository
@@ -77,8 +72,10 @@ then push that image to GHCR with tags for
 `ghcr.io/organization/package-unstable:451ba479cce63ab5c0e87a5c723e373d920d3406`.
 
 ---
-## [`update-image`](update-image/action.yml)
-This GitHub Action updates a file in a repository (typically a configuration or deployment file in the ht_tanka repo) by replacing its contents with a new Docker image reference. It then commits and pushes the change back to the repository, automating the update process for image deployment configurations. This is an action that is used by the `deploy` workflow.
+## [`validate-tag`](validate-tag/action.yml)
+
+Uses `git rev-parse` to verify and expand a potentially ambiguous Git tag into
+something usable by other actions. Used by the `build` action.
 
 ---
 ## [`tag-release`](tag-release/action.yml)
@@ -141,6 +138,10 @@ jobs:
                     CONFIG_REPO_FULL_NAME: ${{ vars.CONFIG_REPO_FULL_NAME }}
                     CONFIG_REPO_RW_KEY: ${{secrets.CONFIG_REPO_RW_KEY}}
 ```
+---
+## [`update-image`](update-image/action.yml)
+This GitHub Action updates a file in a repository (typically a configuration or deployment file in the ht_tanka repo) by replacing its contents with a new Docker image reference. It then commits and pushes the change back to the repository, automating the update process for image deployment configurations. This is an action that is used by the `deploy` workflow.
+
 ---
 ## [`scan-image`](scan-image/action.yml)
 This GitHub Action performs a security scan on a Docker image using Trivy. It checks for OS and library vulnerabilities, outputs a readable report, publishes a summary to the GitHub Actions UI, and optionally comments the results on a pull request.
