@@ -28,7 +28,7 @@ inputs:
 runs:
   using: composite
   steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
     with:
       fetch-depth: 0
   - name: Set environment variables
@@ -52,13 +52,13 @@ runs:
       fi
   - name: Generate app token
     id: generate_token
-    uses: actions/create-github-app-token@v1
+    uses: actions/create-github-app-token@v3
     with:
       app-id: ${{ env.CONFIG_REPO_RW_APP_ID }}
       private-key: ${{ inputs.CONFIG_REPO_RW_KEY }}
       owner: ${{ github.repository_owner }}
   - name: Send the message
-    uses: peter-evans/repository-dispatch@v3
+    uses: peter-evans/repository-dispatch@v4
     with:
       event-type: update-image
       token: ${{ steps.generate_token.outputs.token }}
