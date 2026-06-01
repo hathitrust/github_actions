@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
   - name: Run Trivy vulnerability scanner
-    uses: aquasecurity/trivy-action@0.28.0
+    uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
     env:
       TRIVY_DISABLE_VEX_NOTICE: true
     with:
@@ -44,7 +44,7 @@ runs:
 
   - name: Comment on PR
     if: github.event_name == 'pull_request'
-    uses: actions/github-script@v9
+    uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
     with:
       script: |
         const fs = require('fs')
