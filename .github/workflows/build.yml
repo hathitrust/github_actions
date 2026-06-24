@@ -70,7 +70,7 @@ on:
     outputs:
       ghc_img:
         description: "Export GHCR.io package resource URL"
-        value: ${{ steps.ghc_img_id.outputs.ghc_img }}
+        value: ${{ jobs.build.result.ghc_img_id.outputs.ghc_img }}
 
 jobs:
   build:
