@@ -1,158 +1,174 @@
 name: "Build Docker Image"
-description: "Build Docker image for arbitrary revision/branch/tag and push to registry"
 
-inputs:
-  tag:
-    description: Revision, tag, or branch to build
-    required: true
-    default: ${{ github.event.repository.default_branch }}
-  img_tag:
-    description: Tag applied to the container image.
-  image:
-    description: >-
-      Image to build, e.g. ghcr.io/organization/image.
-    required: true
-  registry:
-    description: >-
-      Registry that hosts these images; by default, ghcr.io.
-    default: ghcr.io
-  registry_username:
-    description: >-
-      Username for logging in to registry. For GHCR (and by default), set to github.actor.
-    default: ${{ github.actor }}
-  registry_token:
-    description: >-
-      Token for logging in to registry.  For GHCR (and by default), set to github.token.
-    default: ${{ github.token }}
-  build-args:
-    description: >-
-      Set build time variables for the ARG instruction
-    required: false
-  dockerfile:
-    description: >-
-      Which file to use to build the image; by default, Dockerfile
-    default: Dockerfile
-  push_latest:
-    description: >-
-      Update 'latest' tag when pushing
-    default: false
-  submodules:
-    description: >-
-      Whether to checkout submodules (as for actions@v3) and thence build them into the image. Set to false by default as for checkout. If you use submodules, you probably want to set this.
-    default: false
-  platforms:
-    description: >-
-      Build images for cross platform support.
-    default: "linux/amd64,linux/arm64"
-  rebuild:
-    description: Rebuild the image manually?
-    default: false
-  gh_event:
-    description: The name of the event that triggered the parent workflow.
-  target:
-    description: Sets the target stage to build
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Revision, tag, or branch to build
+        required: true
+        type: string
+        default: ${{ github.event.repository.default_branch }}
+      img_tag:
+        description: Tag applied to the container image.
+        type: string
+      image:
+        description: >-
+          Image to build, e.g. ghcr.io/organization/image.
+        required: true
+        type: string
+      registry:
+        description: >-
+          Registry that hosts these images; by default, ghcr.io.
+        default: ghcr.io
+        type: string
+      registry_username:
+        description: >-
+          Username for logging in to registry. For GHCR (and by default), set to github.actor.
+        default: ${{ github.actor }}
+        type: string
+      registry_token:
+        description: >-
+          Token for logging in to registry.  For GHCR (and by default), set to github.token.
+        default: ${{ github.token }}
+        type: string
+      build-args:
+        description: >-
+          Set build time variables for the ARG instruction
+        required: false
+        type: string
+      dockerfile:
+        description: >-
+          Which file to use to build the image; by default, Dockerfile
+        default: Dockerfile
+        type: string
+      push_latest:
+        description: >-
+          Update 'latest' tag when pushing
+        default: false
+        type: boolean
+      submodules:
+        description: >-
+          Whether to checkout submodules (as for actions@v3) and thence build them into the image. Set to false by default as for checkout. If you use submodules, you probably want to set this.
+        default: false
+        type: boolean
+      platforms:
+        description: >-
+          Build images for cross platform support.
+        default: "linux/amd64,linux/arm64"
+        type: string
+      rebuild:
+        description: Rebuild the image manually?
+        default: false
+        type: boolean
+      gh_event:
+        description: The name of the event that triggered the parent workflow.
+        type: string
+      target:
+        description: Sets the target stage to build
+        type: string
 
-outputs:
-  ghc_img:
-    description: "Export GHCR.io package resource URL"
-    value: ${{ steps.ghc_img_id.outputs.ghc_img }}
+    outputs:
+      ghc_img:
+        description: "Export GHCR.io package resource URL"
+        value: ${{ steps.ghc_img_id.outputs.ghc_img }}
 
-runs:
-  using: composite
-  steps:
-    - name: Set Inputs & Outputs
-      id: set_inputs
-      shell: bash
-      run: |
-        if [ "${{ github.event_name }}" == "workflow_run" ]; then
-              echo "ref=${{ github.sha }}" >> $GITHUB_OUTPUT
-              echo "push_latest=true" >> $GITHUB_OUTPUT
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Inputs & Outputs
+        id: set_inputs
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+                echo "ref=${{ github.sha }}" >> $GITHUB_OUTPUT
+                echo "push_latest=true" >> $GITHUB_OUTPUT
+            else
+                # workflow_dispatch or other trigger
+                echo "ref=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+                echo "push_latest=${{ inputs.push_latest }}" >> $GITHUB_OUTPUT
+                echo "img_tag=${{ inputs.img_tag }}" >> $GITHUB_OUTPUT
+            fi
+
+      - name: Clone latest repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.set_inputs.outputs.ref }}
+          submodules: ${{ inputs.submodules }}
+
+      - name: Find commit for tag
+        id: tag_check
+        uses: hathitrust/github_actions/validate-tag@v1
+        with:
+          tag: ${{ steps.set_inputs.outputs.ref }}
+
+      - name: Log into container registry
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.registry_username }}
+          password: ${{ inputs.registry_token }}
+
+      - name: Check if revision exists in container registry
+        id: image_check
+        shell: bash
+        run: |
+          echo Checking whether Docker image "$IMAGE":"$TAG" exists
+          if docker manifest inspect "$IMAGE":"$TAG" > /dev/null; then
+            echo 'image_exists=true' >> $GITHUB_OUTPUT
+            echo "image exists!"
           else
-              # workflow_dispatch or other trigger
-              echo "ref=${{ inputs.tag }}" >> $GITHUB_OUTPUT
-              echo "push_latest=${{ inputs.push_latest }}" >> $GITHUB_OUTPUT
-              echo "img_tag=${{ inputs.img_tag }}" >> $GITHUB_OUTPUT
+            echo "image doesn't exist; Starting to Build and push image"
           fi
+        env:
+          IMAGE: ${{ inputs.image }}
+          TAG: ${{ steps.tag_check.outputs.tag }}
 
-    - name: Clone latest repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        ref: ${{ steps.set_inputs.outputs.ref }}
-        submodules: ${{ inputs.submodules }}
+      - name: Check whether to push latest tag
+        if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
+        id: latest_push
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          INPUT_PUSH_LATEST: ${{ steps.set_inputs.outputs.push_latest }}
+          INPUT_IMAGE: ${{ inputs.image }}
+        with:
+          script: |
+            if ( core.getInput('push_latest') == 'true' ) {
+              core.setOutput('latest_tag',core.getInput('image') + ':latest')
+            } else {
+              core.setOutput('latest_tag',core.getInput('image') + ':unstable')
+            }
 
-    - name: Find commit for tag
-      id: tag_check
-      uses: hathitrust/github_actions/validate-tag@v1
-      with:
-        tag: ${{ steps.set_inputs.outputs.ref }}
+      - name: Set up QEMU
+        if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
+        # QEMU emulation for the Arm portion of our multi-platform Docker image build. Intel Machines
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
 
-    - name: Log into container registry
-      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-      with:
-        registry: ${{ inputs.registry }}
-        username: ${{ inputs.registry_username }}
-        password: ${{ inputs.registry_token }}
+      - name: Set up Docker Buildx
+        if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
+        # Required for multi-platform Docker image builds in GitHub Actions that use docker/build-push-action.
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
 
-    - name: Check if revision exists in container registry
-      id: image_check
-      shell: bash
-      run: |
-        echo Checking whether Docker image "$IMAGE":"$TAG" exists
-        if docker manifest inspect "$IMAGE":"$TAG" > /dev/null; then
-          echo 'image_exists=true' >> $GITHUB_OUTPUT
-          echo "image exists!"
-        else
-          echo "image doesn't exist; Starting to Build and push image"
-        fi
-      env:
-        IMAGE: ${{ inputs.image }}
-        TAG: ${{ steps.tag_check.outputs.tag }}
+      - name: Build image and push to GHCR
+        if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ inputs.image }}:${{ steps.set_inputs.outputs.img_tag && inputs.img_tag || steps.tag_check.outputs.tag }}
+            ${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}
+            ${{ steps.latest_push.outputs.latest_tag }}
+          file: ${{ inputs.dockerfile }}
+          build-args: ${{ inputs.build-args }}
+          platforms: ${{ inputs.platforms}}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          pull: true
+          target: ${{inputs.target}}
 
-    - name: Check whether to push latest tag
-      if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
-      id: latest_push
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-      env:
-        INPUT_PUSH_LATEST: ${{ steps.set_inputs.outputs.push_latest }}
-        INPUT_IMAGE: ${{ inputs.image }}
-      with:
-        script: |
-          if ( core.getInput('push_latest') == 'true' ) {
-            core.setOutput('latest_tag',core.getInput('image') + ':latest')
-          } else {
-            core.setOutput('latest_tag',core.getInput('image') + ':unstable')
-          }
-
-    - name: Set up QEMU
-      if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
-      # QEMU emulation for the Arm portion of our multi-platform Docker image build. Intel Machines
-      uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
-
-    - name: Set up Docker Buildx
-      if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
-      # Required for multi-platform Docker image builds in GitHub Actions that use docker/build-push-action.
-      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
-
-    - name: Build image and push to GHCR
-      if: ${{ steps.image_check.outputs.image_exists != 'true' || inputs.rebuild }}
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
-      with:
-        context: .
-        push: true
-        tags: |
-          ${{ inputs.image }}:${{ steps.set_inputs.outputs.img_tag && inputs.img_tag || steps.tag_check.outputs.tag }}
-          ${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}
-          ${{ steps.latest_push.outputs.latest_tag }}
-        file: ${{ inputs.dockerfile }}
-        build-args: ${{ inputs.build-args }}
-        platforms: ${{ inputs.platforms}}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        provenance: false
-        pull: true
-        target: ${{inputs.target}}
-
-    - name: Export GHCR.io resource
-      id: ghc_img_id
-      shell: bash
-      run: echo "ghc_img=${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}" >> $GITHUB_OUTPUT
+      - name: Export GHCR.io resource
+        id: ghc_img_id
+        shell: bash
+        run: echo "ghc_img=${{ inputs.image }}:${{ steps.tag_check.outputs.tag }}" >> $GITHUB_OUTPUT
