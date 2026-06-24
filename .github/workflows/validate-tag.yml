@@ -1,0 +1,28 @@
+name: "HathiTrust Tag Check"
+description: "Check and expand revision tag"
+inputs:
+  tag:
+    required: true
+
+outputs:
+  tag:
+    description: "Actual GitHub tag"
+    value: ${{ steps.tag-check.outputs.tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: tag-check
+      name: "Check and expand revision tag"
+      run: |
+        if git rev-parse 'refs/tags/${{ inputs.tag }}' &> /dev/null
+        then
+          echo 'tag=${{ inputs.tag }}' >> $GITHUB_OUTPUT
+        elif git rev-parse '${{ inputs.tag }}' &> /dev/null
+        then
+          echo "tag=`git rev-parse '${{ inputs.tag }}'`" >> $GITHUB_OUTPUT
+        else
+          echo "Couldn't figure out tag from input: ${{ inputs.tag }}"
+          exit 1
+        fi
+      shell: bash
