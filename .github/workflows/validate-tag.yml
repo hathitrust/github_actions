@@ -1,0 +1,33 @@
+name: "HathiTrust Tag Check"
+#description: "Check and expand revision tag"
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        description: "GitHub tag or revision to check and expand"
+        type: string
+    outputs:
+      tag:
+        description: "Actual GitHub tag"
+        value: ${{ jobs.tag-check.result.tag-check.outputs.tag }}
+
+jobs:
+  tag-check:
+    runs-on: ubuntu-latest
+    steps:
+      - id: tag-check
+        name: "Check and expand revision tag"
+        run: |
+          if git rev-parse 'refs/tags/${{ inputs.tag }}' &> /dev/null
+          then
+            echo 'tag=${{ inputs.tag }}' >> $GITHUB_OUTPUT
+          elif git rev-parse '${{ inputs.tag }}' &> /dev/null
+          then
+            echo "tag=`git rev-parse '${{ inputs.tag }}'`" >> $GITHUB_OUTPUT
+          else
+            echo "Couldn't figure out tag from input: ${{ inputs.tag }}"
+            exit 1
+          fi
+        shell: bash
