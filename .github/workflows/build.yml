@@ -16,21 +16,6 @@ on:
           Image to build, e.g. ghcr.io/organization/image.
         required: true
         type: string
-      registry:
-        description: >-
-          Registry that hosts these images; by default, ghcr.io.
-        default: ghcr.io
-        type: string
-      registry_username:
-        description: >-
-          Username for logging in to registry. For GHCR (and by default), set to github.actor.
-        default: ${{ github.actor }}
-        type: string
-      registry_token:
-        description: >-
-          Token for logging in to registry.  For GHCR (and by default), set to github.token.
-        default: ${{ github.token }}
-        type: string
       build-args:
         description: >-
           Set build time variables for the ARG instruction
@@ -105,9 +90,9 @@ jobs:
       - name: Log into container registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
-          registry: ${{ inputs.registry }}
-          username: ${{ inputs.registry_username }}
-          password: ${{ inputs.registry_token }}
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if revision exists in container registry
         id: image_check
