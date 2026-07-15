@@ -4,21 +4,6 @@ name: "Docker Tag Release"
 on:
   workflow_call:
     inputs:
-      registry_username:
-        description: >-
-          Username for logging in to registry. Normally, set to github.actor.
-        default: ${{ github.actor }}
-        type: string
-      registry_token:
-        description: >-
-          Token for logging in to registry. Normally, use secrets.GITHUB_TOKEN.
-        required: true
-        type: string
-      registry:
-        description: >-
-          Registry that hosts these images; by default, ghcr.io.
-        default: ghcr.io
-        type: string
       existing_tag:
         description: >-
           Existing image and tag to use.
@@ -50,9 +35,9 @@ jobs:
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
 
         with:
-          registry: ${{ inputs.registry }}
-          username: ${{ inputs.registry_username }}
-          password: ${{ inputs.registry_token }}
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait for revision to exist in container registry
         env:

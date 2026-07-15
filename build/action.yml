@@ -23,7 +23,7 @@ inputs:
   registry_token:
     description: >-
       Token for logging in to registry.  For GHCR (and by default), set to github.token.
-    default: ${{ github.token }}
+    default: ${{ secrets.GITHUB_TOKEN }}
   build-args:
     description: >-
       Set build time variables for the ARG instruction
