@@ -30,9 +30,7 @@ on:
         type: string
     secrets:
       CONFIG_REPO_RW_KEY:
-        description: The private key used to talk to the GithubAPP with the App ID
         required: true
-        type: string
 
 jobs:
   deploy:
