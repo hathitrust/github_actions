@@ -18,7 +18,7 @@ on:
         type: string
       CONFIG_REPO_RW_APP_ID:
         description: The ID of the GithubApp that is used to generate keys that enable one repository to send repository dispatch messages to another.
-        required: true
+        required: false
         type: string
       CONFIG_REPO_RW_INSTALL_ID:
         description: ""
@@ -26,7 +26,7 @@ on:
         type: string
       CONFIG_REPO_FULL_NAME:
         description: The github repo of the tanka control repository
-        required: true
+        required: false
         type: string
     secrets:
       CONFIG_REPO_RW_KEY:
