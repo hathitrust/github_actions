@@ -38,14 +38,6 @@ jobs:
       - name: Set environment variables
         shell: bash
         run: |
-          if [ -z "${{ inputs.CONFIG_REPO_RW_APP_ID }}" ]
-          then
-            echo "CONFIG_REPO_RW_APP_ID=${{ env.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
-            echo "setting CONFIG_REPO_RW_APP_ID to ${{ env.CONFIG_REPO_RW_APP_ID }} from env"
-          else
-            echo "CONFIG_REPO_RW_APP_ID=${{ inputs.CONFIG_REPO_RW_APP_ID }}" >> $GITHUB_ENV
-            echo "setting CONFIG_REPO_RW_APP_ID to ${{ inputs.CONFIG_REPO_RW_APP_ID }} from inputs"
-          fi
           if [ -z "${{ inputs.CONFIG_REPO_FULL_NAME }}" ]
           then
             echo "CONFIG_REPO_FULL_NAME=${{ env.CONFIG_REPO_FULL_NAME }}" >> $GITHUB_ENV
